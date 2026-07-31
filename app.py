@@ -173,6 +173,16 @@ if "cart" not in st.session_state:
 if "last_order_id" not in st.session_state:
     st.session_state.last_order_id = None
 
+# Handle a pending cart-clear request BEFORE any qty_* widget is instantiated
+# below. You cannot overwrite a widget's session_state key in the same run
+# after that widget has already been created, so the actual reset is done
+# here, at the top of the script, on the rerun that follows "Place Order".
+if st.session_state.get("_do_clear_cart"):
+    for _item in ITEMS:
+        st.session_state.pop(f"qty_{_item}", None)
+    st.session_state.cart = {}
+    st.session_state["_do_clear_cart"] = False
+
 # --------------------------------------------------------------------------------------
 # HEADER
 # --------------------------------------------------------------------------------------
@@ -292,9 +302,7 @@ with tab_shop:
             if st.button("✅ Place Order", type="primary", use_container_width=True):
                 new_id = append_transaction(st.session_state.cart)
                 st.session_state.last_order_id = new_id
-                st.session_state.cart = {}
-                for item in ITEMS:
-                    st.session_state[f"qty_{item}"] = 0
+                st.session_state["_do_clear_cart"] = True
                 st.rerun()
 
         if st.session_state.last_order_id:
