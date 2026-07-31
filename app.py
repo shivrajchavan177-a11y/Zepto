@@ -366,8 +366,10 @@ with tab_dash:
         st.warning("No frequent itemsets at this support threshold — lower it in the sidebar.")
 
     st.markdown("##### Item co-occurrence heatmap")
-    co = onehot.T.dot(onehot)
-    np.fill_diagonal(co.values, 0)
+    co = onehot.astype(int).T.dot(onehot.astype(int))
+    co = co.to_numpy(dtype=int, copy=True)
+    np.fill_diagonal(co, 0)
+    co = pd.DataFrame(co, index=onehot.columns, columns=onehot.columns)
     fig4 = px.imshow(co, color_continuous_scale="Purples", aspect="auto")
     fig4.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
                         font_color="white", height=450)
